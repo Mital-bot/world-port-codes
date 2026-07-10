@@ -1,0 +1,392 @@
+<!doctype html>
+<!--
+  ============================================================================
+   WORLD SEA PORTS DIRECTORY  (SINGLE FILE — EASY TO EDIT)
+   Source: UNECE UN/LOCODE Database | Compiled: July 2026
+  ============================================================================
+
+   YEH FILE KAISE USE KAREIN:
+   1) Is poori file ko apni GitHub website (index.html) me daal dein.
+   2) Neeche "PORTS DATA" section me har country ka ek block hai.
+   3) PORT ADD karne ke liye: us country ke andar nayi line jodein:
+          ["Port Ka Naam", "PORTCODE"],
+   4) PORT REMOVE karne ke liye: us port ki poori line delete kar dein.
+
+   Bas! Search, table, aur count sab apne aap chalega.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Sea Ports Directory | UN/LOCODE</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", Arial, sans-serif; background: #f1f5f9; color: #1e293b; }
+    header { background: linear-gradient(90deg, #172554, #1d4ed8, #0e7490); color: #fff; padding: 26px 16px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+    .hwrap { max-width: 1000px; margin: 0 auto; }
+    header h1 { font-size: 26px; }
+    header p { color: #a5f3fc; font-size: 13px; margin-top: 4px; }
+    .stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    .stat { background: rgba(255,255,255,.12); border-radius: 8px; padding: 10px 18px; }
+    .stat b { font-size: 22px; display: block; }
+    .stat span { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #a5f3fc; }
+    .container { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+    .bar { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); padding: 14px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .bar input[type=text] { flex: 1; min-width: 220px; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; outline: none; }
+    .bar input[type=text]:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.2); }
+    .bar label { font-size: 14px; color: #475569; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .btn { padding: 10px 14px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .btn-blue { background: #1d4ed8; color: #fff; }
+    .btn-gray { background: #e2e8f0; color: #334155; }
+    .info { font-size: 12px; color: #64748b; margin: 8px 4px; }
+    .country { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); margin-bottom: 12px; overflow: hidden; }
+    .chead { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+    .chead:hover { background: #f8fafc; }
+    .chead .arrow { color: #94a3b8; font-size: 12px; width: 14px; }
+    .chead .cname { font-weight: 600; }
+    .badge { font-size: 11px; padding: 2px 10px; border-radius: 999px; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-amber { background: #fef3c7; color: #b45309; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: #f8fafc; color: #64748b; }
+    th { text-align: left; padding: 8px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+    td { padding: 8px 16px; border-bottom: 1px solid #f1f5f9; }
+    tbody tr:hover { background: #eff6ff; }
+    .code { display: inline-block; background: #dbeafe; color: #1e40af; font-family: monospace; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
+    .num { color: #94a3b8; }
+    .landlocked-note { padding: 12px 16px; color: #94a3b8; font-style: italic; font-size: 13px; border-top: 1px solid #f1f5f9; }
+    .empty { background: #fff; border-radius: 12px; padding: 40px; text-align: center; color: #94a3b8; }
+    footer { text-align: center; color: #64748b; font-size: 13px; padding: 24px 16px; border-top: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hwrap">
+      <h1>⚓ World Sea Ports Directory</h1>
+      <p>All Countries · Major Sea Ports &amp; UN/LOCODE Port Codes</p>
+      <div class="stats">
+        <div class="stat"><b id="sPorts">0</b><span>Total Ports</span></div>
+        <div class="stat"><b id="sCountries">0</b><span>Countries</span></div>
+        <div class="stat"><b id="sCoastal">0</b><span>Coastal</span></div>
+        <div class="stat"><b id="sLand">0</b><span>Landlocked</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="bar">
+      <input id="search" type="text" placeholder="🔍 Search by country, port name, or code (e.g. INNSA, Dubai, Japan)..." oninput="render()" />
+      <label><input type="checkbox" id="hideLand" onchange="render()" /> Hide Landlocked</label>
+      <button class="btn btn-blue" onclick="setAll(true)">Expand All</button>
+      <button class="btn btn-gray" onclick="setAll(false)">Collapse All</button>
+    </div>
+    <div class="info" id="info"></div>
+    <div id="list"></div>
+  </div>
+
+  <footer>
+    <p>Source: UNECE UN/LOCODE Database · Format: Country Code + Location Code (5 Characters)</p>
+    <p>© 2026 J. PATEL SHIPPING AND LOGISTICS · Private &amp; Confidential Reference Tool</p>
+  </footer>
+
+  <script>
+    // =======================================================================
+    //  PORTS DATA  —  YAHAN SE ADD / REMOVE KAREIN
+    //  { country: "Country Name", landlocked: false, ports: [ ["Port", "CODE"], ... ] }
+    // =======================================================================
+    const DATA = [
+      { country: "Afghanistan", landlocked: true, ports: [] },
+      { country: "Albania", ports: [["Durres (Durrës)","ALDRZ"],["Vlore (Vlorë)","ALVLO"],["Sarande","ALSAR"],["Shengjin","ALSHG"]] },
+      { country: "Algeria", ports: [["Algiers","DZALG"],["Oran","DZORN"],["Annaba","DZAAE"],["Skikda","DZSKI"],["Bejaia","DZBJA"],["Arzew","DZAZW"],["Mostaganem","DZMOS"]] },
+      { country: "American Samoa", ports: [["Pago Pago","ASPPG"]] },
+      { country: "Angola", ports: [["Luanda","AOLAD"],["Lobito","AOLOB"],["Namibe","AOMSZ"],["Cabinda","AOCAB"],["Soyo","AOSZA"],["Benguela","AOBUG"]] },
+      { country: "Anguilla", ports: [["The Valley","AIVLI"],["Blowing Point","AIBLP"],["Road Bay","AIRBY"]] },
+      { country: "Antigua and Barbuda", ports: [["St. John's","AGSJO"],["Antigua","AGANU"],["Barbuda","AGBBQ"]] },
+      { country: "Argentina", ports: [["Buenos Aires","ARBUE"],["Bahia Blanca","ARBHI"],["Rosario","ARROS"],["Mar del Plata","ARMDQ"],["Comodoro Rivadavia","ARCRD"],["Ushuaia","ARUSH"],["La Plata","ARLPG"],["Puerto Madryn","ARPMY"]] },
+      { country: "Armenia", landlocked: true, ports: [["Yerevan","AMEVN"],["Akhuryan","AMAHU"]] },
+      { country: "Aruba", ports: [["Oranjestad","AWORJ"],["Barcadera","AWBAR"]] },
+      { country: "Australia", ports: [["Sydney","AUSYD"],["Melbourne","AUMEL"],["Brisbane","AUBNE"],["Fremantle","AUFRE"],["Adelaide","AUADL"],["Darwin","AUDRW"],["Hobart","AUHBA"],["Newcastle","AUNTL"],["Port Hedland","AUPHE"],["Townsville","AUTSU"],["Burnie","AUBWT"],["Geelong","AUGEX"]] },
+      { country: "Austria", landlocked: true, ports: [] },
+      { country: "Azerbaijan", ports: [["Baku","AZBAK"],["Sumqayit","AZSUM"]] },
+      { country: "Bahamas", ports: [["Nassau","BSNAS"],["Freeport","BSFPO"],["Marsh Harbour","BSMHH"]] },
+      { country: "Bahrain", ports: [["Mina Salman","BHMIN"],["Sitra","BHSIT"],["Khalifa Bin Salman Port","BHKBS"]] },
+      { country: "Bangladesh", ports: [["Chittagong","BDCGP"],["Mongla","BDMON"],["Payra","BDPAY"]] },
+      { country: "Barbados", ports: [["Bridgetown","BBBGI"]] },
+      { country: "Belarus", landlocked: true, ports: [] },
+      { country: "Belgium", ports: [["Antwerp","BEANR"],["Zeebrugge","BEZEE"],["Ghent","BEGNE"],["Brussels","BEBRU"]] },
+      { country: "Belize", ports: [["Belize City","BZBZE"],["Big Creek","BZBGK"],["San Pedro","BZSPR"]] },
+      { country: "Benin", ports: [["Cotonou","BJCOO"],["Porto-Novo","BJPNV"]] },
+      { country: "Bermuda", ports: [["Hamilton","BMBDA"],["St. George's","BMSGE"]] },
+      { country: "Bhutan", landlocked: true, ports: [] },
+      { country: "Bolivia", landlocked: true, ports: [] },
+      { country: "Bosnia and Herzegovina", ports: [["Neum","BANEU"]] },
+      { country: "Botswana", landlocked: true, ports: [] },
+      { country: "Brazil", ports: [["Santos","BRSSZ"],["Rio de Janeiro","BRRIG"],["Paranagua","BRPNG"],["Sao Paulo (Guaruja)","BRGRU"],["Salvador","BRSSA"],["Recife","BRREC"],["Fortaleza","BRFOR"],["Belem","BRBEL"],["Rio Grande","BRRIG"],["Itajai","BRITJ"],["Suape","BRSUZ"],["Manaus","BRMAO"]] },
+      { country: "British Virgin Islands", ports: [["Road Town","VGRAD"]] },
+      { country: "Brunei Darussalam", ports: [["Muara","BNMUA"],["Seria","BNSER"]] },
+      { country: "Bulgaria", ports: [["Varna","BGVAR"],["Burgas","BGBOJ"],["Ruse","BGRUS"]] },
+      { country: "Burkina Faso", landlocked: true, ports: [] },
+      { country: "Burundi", landlocked: true, ports: [] },
+      { country: "Cambodia", ports: [["Sihanoukville","KHSIH"],["Phnom Penh","KHPNH"]] },
+      { country: "Cameroon", ports: [["Douala","CMDLA"],["Kribi","CMKBI"],["Limbe","CMLIM"],["Tiko","CMTKK"]] },
+      { country: "Canada", ports: [["Vancouver","CAVAN"],["Montreal","CAMTR"],["Toronto","CATOR"],["Halifax","CAHFX"],["Prince Rupert","CAPRR"],["Quebec City","CAQUE"],["Saint John","CASJF"],["Hamilton","CAHAM"],["Thunder Bay","CATHB"]] },
+      { country: "Cape Verde", ports: [["Mindao (Praia)","CVRAI"],["Palmeira","CVPAL"]] },
+      { country: "Cayman Islands", ports: [["George Town","KYGEC"]] },
+      { country: "Central African Republic", landlocked: true, ports: [] },
+      { country: "Chad", landlocked: true, ports: [] },
+      { country: "Chile", ports: [["Valparaiso","CLVAP"],["San Antonio","CLSAI"],["Antofagasta","CLANF"],["Iquique","CLIQQ"],["Punta Arenas","CLPUQ"],["Arica","CLARI"],["Talcahuano","CLTAL"],["San Vicente","CLSVE"]] },
+      { country: "China", ports: [["Shanghai","CNSHA"],["Shenzhen","CNSZX"],["Ningbo-Zhoushan","CNNGB"],["Guangzhou","CNCAN"],["Qingdao","CNTAO"],["Tianjin","CNTXG"],["Hong Kong","HKHKG"],["Xiamen","CNXMN"],["Dalian","CNDLC"],["Dongguan","CNDOH"],["Fuzhou","CNFOC"],["Yantai","CNYNT"],["Nanjing","CNNKG"],["Lianyungang","CNLYG"],["Nantong","CNNTG"]] },
+      { country: "Colombia", ports: [["Buenaventura","COBUN"],["Cartagena","CTGCTG"],["Barranquilla","COBAQ"],["Santa Marta","COSMR"],["Turbo","COTRB"]] },
+      { country: "Comoros", ports: [["Moroni","KMYVA"],["Mutsamudu","KMMUT"]] },
+      { country: "Congo (Brazzaville)", ports: [["Pointe-Noire","CGPNR"],["Brazzaville","CGBZV"]] },
+      { country: "Congo (Kinshasa)", ports: [["Matadi","CDMAT"],["Boma","CDBOA"],["Kinshasa","CDKIN"]] },
+      { country: "Cook Islands", ports: [["Avatiu (Rarotonga)","CKRAR"],["Aitutaki","CKAIT"]] },
+      { country: "Costa Rica", ports: [["Limon","CRLIO"],["Caldera","CRCAL"],["Puerto Quepos","CRPQE"],["Golfito","CRGLF"]] },
+      { country: "Côte d'Ivoire", ports: [["Abidjan","CIABJ"],["San Pedro","CISPY"]] },
+      { country: "Croatia", ports: [["Rijeka","HRRJK"],["Split","HRSPU"],["Dubrovnik","HRDBV"],["Zadar","HRZAD"],["Ploce","HRPLE"],["Sibenik","HRSIB"]] },
+      { country: "Cuba", ports: [["Havana","CUHAV"],["Santiago de Cuba","CUSCU"],["Cienfuegos","CUCFG"],["Mariel","CUMAR"],["Matanzas","CUQMA"]] },
+      { country: "Curaçao", ports: [["Willemstad","CWWIL"],["Bullen Bay","CWBLB"]] },
+      { country: "Cyprus", ports: [["Limassol","CYLMS"],["Larnaca","CYLCA"],["Famagusta","CYFMG"],["Vassiliko","CYVAS"],["Paphos","CYPFO"]] },
+      { country: "Czech Republic", landlocked: true, ports: [] },
+      { country: "Denmark", ports: [["Copenhagen","DKCPH"],["Aarhus","DKAAR"],["Aalborg","DKAAL"],["Esbjerg","DKEBJ"],["Fredericia","DKFRC"],["Odense","DKODE"]] },
+      { country: "Djibouti", ports: [["Djibouti","DJJIB"],["Doraleh","DJDDL"]] },
+      { country: "Dominica", ports: [["Roseau","DMRSU"],["Portsmouth","DMPMD"]] },
+      { country: "Dominican Republic", ports: [["Caucedo","DOCAU"],["Haina","DOHAI"],["Puerto Plata","DOPOP"],["San Pedro de Macoris","DOSPM"]] },
+      { country: "Ecuador", ports: [["Guayaquil","ECGYE"],["Esmeraldas","ECESM"],["Manta","ECMEC"],["Puerto Bolivar","ECPBO"]] },
+      { country: "Egypt", ports: [["Port Said","EGPSD"],["Alexandria","EGALY"],["Damietta","EGDAM"],["Sokhna","EGSOK"],["Suez","EGSUZ"],["El Dekheila","EGEDK"],["Ain Sukhna","EGAIS"]] },
+      { country: "El Salvador", ports: [["Acajutla","SVAQJ"],["La Union","SVLUN"],["La Libertad","SVLLD"]] },
+      { country: "Equatorial Guinea", ports: [["Bata","GQBBS"],["Malabo","GQBSG"],["Luba","GQLUB"]] },
+      { country: "Eritrea", ports: [["Massawa","ERMSW"],["Assab","ERASA"]] },
+      { country: "Estonia", ports: [["Tallinn","EETLL"],["Parnu","EEPRN"],["Muuga","EEMUG"]] },
+      { country: "Eswatini (Swaziland)", landlocked: true, ports: [] },
+      { country: "Ethiopia", landlocked: true, ports: [] },
+      { country: "Falkland Islands", ports: [["Stanley","FKPSJ"]] },
+      { country: "Faroe Islands", ports: [["Torshavn","FOTOR"],["Klaksvik","FOKVI"]] },
+      { country: "Fiji", ports: [["Suva","FJSUV"],["Lautoka","FJLTK"],["Labasa","FJLBS"]] },
+      { country: "Finland", ports: [["Helsinki","FIHEL"],["Turku","FITKU"],["Kotka","FIKTK"],["Hamina","FIHMN"],["Rauma","FIRAU"],["Oulu","FIOUL"],["Hanko","FIHKO"]] },
+      { country: "France", ports: [["Marseille","FRMRS"],["Le Havre","FRLEH"],["Dunkirk","FRDKK"],["Bordeaux","FRBOD"],["Nantes-Saint Nazaire","FRSNR"],["Calais","FRCQF"],["Toulon","FRTLN"],["La Rochelle","FRLRT"],["Brest","FRBES"],["Lyon","FRLYS"]] },
+      { country: "French Guiana", ports: [["Cayenne","GFCAY"]] },
+      { country: "French Polynesia", ports: [["Papeete","PFPPT"]] },
+      { country: "Gabon", ports: [["Libreville","GALBV"],["Port-Gentil","GAPOG"],["Owendo","GAOWE"]] },
+      { country: "Gambia", ports: [["Banjau","GMBJL"]] },
+      { country: "Georgia", ports: [["Batumi","GEBUS"],["Poti","GEPTI"],["Supsa","GESUP"]] },
+      { country: "Germany", ports: [["Hamburg","DEHAM"],["Bremen/Bremerhaven","DEBRV"],["Wilhelmshaven","DEWVN"],["Rostock","DERSK"],["Lubeck","DELBC"],["Emden","DEEME"],["Kiel","DEKEL"],["Duisburg","DEDUI"]] },
+      { country: "Ghana", ports: [["Tema","GHTEM"],["Takoradi","GHTKD"]] },
+      { country: "Gibraltar", ports: [["Gibraltar","GIGIB"]] },
+      { country: "Greece", ports: [["Piraeus","GRPIR"],["Thessaloniki","GRSKG"],["Patras","GRPAS"],["Heraklion","GRHER"],["Volos","GRVOL"],["Rhodes","GRRHO"],["Corfu","GRCFU"]] },
+      { country: "Greenland", ports: [["Nuuk","GLGOH"],["Sisimiut","GLJHS"]] },
+      { country: "Grenada", ports: [["St. George's","GDSTG"]] },
+      { country: "Guadeloupe", ports: [["Pointe-a-Pitre","GPPTP"],["Basse-Terre","GPBBR"]] },
+      { country: "Guam", ports: [["Apra Harbor","GUAPR"]] },
+      { country: "Guatemala", ports: [["Puerto Quetzal","GTPRQ"],["Santo Tomas de Castilla","GTPST"],["Puerto Barrios","GTPBR"]] },
+      { country: "Guinea", ports: [["Conakry","GNCKY"],["Kamsar","GNKAM"]] },
+      { country: "Guinea-Bissau", ports: [["Bissau","GWOXB"]] },
+      { country: "Guyana", ports: [["Georgetown","GYGEO"],["New Amsterdam","GYNAI"]] },
+      { country: "Haiti", ports: [["Port-au-Prince","HTPAP"],["Cap-Haitien","HTCAP"]] },
+      { country: "Honduras", ports: [["Puerto Cortes","HNPCR"],["San Pedro Sula","HNSAP"],["La Ceiba","HNLCB"],["Roatan","HNRTB"]] },
+      { country: "Hungary", landlocked: true, ports: [] },
+      { country: "Iceland", ports: [["Reykjavik","ISREY"],["Akureyri","ISAKU"],["Hafnarfjordur","ISHAF"]] },
+      { country: "India", ports: [["Mumbai (Nhava Sheva)","INNSA"],["Chennai","INMAA"],["Kolkata","INCCU"],["Kandla (Deendayal)","INIXY"],["Mundra","INMUN"],["Cochin (Kochin)","INCOK"],["Visakhapatnam","INVTZ"],["Tuticorin","INTUT"],["Paradip","INPRT"],["Mormugao","INMRM"],["Jawaharlal Nehru Port","INNSA"],["Mangalore","INIXE"],["Haldia","INHAL"],["Port Blair","INIXZ"],["Bedi (Jamnagar)","INBED"],["Bhavnagar","INBHU"],["Okha","INOKH"],["Porbandar","INPBD"],["Veraval","INVER"]] },
+      { country: "Indonesia", ports: [["Tanjung Priok (Jakarta)","IDTPK"],["Tanjung Perak (Surabaya)","IDSUB"],["Belawan (Medan)","IDBLW"],["Makassar","IDMAK"],["Semarang","IDSRG"],["Palembang","IDPLM"],["Banjarmasin","IDBDJ"],["Balikpapan","IDBPN"],["Bitung","IDBIT"],["Padang","IDPDG"]] },
+      { country: "Iran", ports: [["Bandar Abbas","IRBND"],["Bushehr","IRBUZ"],["Bandar Imam Khomeini","IRBKM"],["Bandar Mahshahr","IRMHH"],["Chabahar","IRZBR"],["Bandar Anzali","IRBAG"]] },
+      { country: "Iraq", ports: [["Basra (Umm Qasr)","IQUQR"],["Khor Al Zubair","IQKAZ"],["Al Faw","IQFAW"],["Abu Al Khasib","IQABU"]] },
+      { country: "Ireland", ports: [["Dublin","IEDUB"],["Cork","IEORK"],["Shannon Foynes","IEFOV"],["Waterford","IEWAT"],["Limerick","IELMK"]] },
+      { country: "Israel", ports: [["Haifa","ILHFA"],["Ashdod","ILASH"],["Eilat","ILETH"]] },
+      { country: "Italy", ports: [["Genoa","ITGOA"],["Gioia Tauro","ITGIO"],["Naples","ITNAP"],["Trieste","ITTRS"],["Livorno","ITLIV"],["Civitavecchia","ITCVV"],["Palermo","ITPMO"],["Venice","ITVCE"],["Bari","ITBRI"],["La Spezia","ITSPE"],["Ravenna","ITRAN"],["Taranto","ITTAR"],["Augusta","ITAUG"],["Messina","ITMSN"]] },
+      { country: "Jamaica", ports: [["Kingston","JMKIN"],["Montego Bay","JMMBJ"],["Port Esquivel","JMPEQ"]] },
+      { country: "Japan", ports: [["Tokyo","JPTYO"],["Yokohama","JPYOK"],["Osaka","JPOSA"],["Nagoya","JPNGO"],["Kobe","JPUKB"],["Kitakyushu","JPKKJ"],["Fukuoka (Hakata)","JPHKT"],["Shimizu","JPSMZ"],["Sakaiminato","JPSAK"],["Moji","JPMOJ"],["Nagasaki","JPNGS"],["Otaru","JPOTR"],["Tomakomai","JPTMK"],["Niigata","JPNTT"]] },
+      { country: "Jordan", ports: [["Aqaba","JOAQJ"]] },
+      { country: "Kazakhstan", ports: [["Aktau","KZAAU"],["Kuryk","KZKRY"]] },
+      { country: "Kenya", ports: [["Mombasa","KEMBA"],["Malindi","KEMAL"],["Lamu","KELAU"]] },
+      { country: "Kiribati", ports: [["Betio (Tarawa)","KITRW"]] },
+      { country: "Kuwait", ports: [["Shuwaikh","KWSWK"],["Shuaiba","KWSAA"],["Mina Al Ahmadi","KWMEA"]] },
+      { country: "Kyrgyzstan", landlocked: true, ports: [] },
+      { country: "Laos", landlocked: true, ports: [] },
+      { country: "Latvia", ports: [["Riga","LVRIX"],["Ventspils","LVVNT"],["Liepaja","LVLPX"]] },
+      { country: "Lebanon", ports: [["Beirut","LBBEY"],["Tripoli","LBKYE"],["Sidon","LBSID"]] },
+      { country: "Lesotho", landlocked: true, ports: [] },
+      { country: "Liberia", ports: [["Monrovia","LRMLW"],["Buchanan","LRUCN"],["Greenville","LRGLP"]] },
+      { country: "Libya", ports: [["Tripoli","LYTIP"],["Benghazi","LYBEN"],["Misurata","LYMRA"],["Tobruk","LYTOB"],["Derna","LYDRN"],["Khoms","LYKMS"]] },
+      { country: "Lithuania", ports: [["Klaipeda","LTKLJ"]] },
+      { country: "Luxembourg", landlocked: true, ports: [] },
+      { country: "Macao", ports: [["Macao","MOMFM"]] },
+      { country: "Madagascar", ports: [["Toamasina","MGTOA"],["Mahajanga","MGMJN"],["Antsiranana","MGANM"],["Toliara","MGTLE"]] },
+      { country: "Malawi", landlocked: true, ports: [] },
+      { country: "Malaysia", ports: [["Port Klang","MYPKG"],["Tanjung Pelepas","MYTPP"],["Penang (George Town)","MYPEN"],["Johor Bahru","MYJHB"],["Kota Kinabalu","MYBKI"],["Kuching","MYKCH"],["Bintulu","MYBTU"],["Sandakan","MYSMK"],["Tawau","MYTWU"]] },
+      { country: "Maldives", ports: [["Male","MVMLE"],["Hulhumale","MVHUL"],["Gan","MVGAN"]] },
+      { country: "Mali", landlocked: true, ports: [] },
+      { country: "Malta", ports: [["Valletta (Marsaxlokk)","MTMAR"],["Marsaxlokk","MTMLA"]] },
+      { country: "Marshall Islands", ports: [["Majuro","MHMAJ"]] },
+      { country: "Martinique", ports: [["Fort-de-France","MQFDF"]] },
+      { country: "Mauritania", ports: [["Nouakchott (Nouadhibou)","MRNDB"],["Nouadhibou","MRNDB"]] },
+      { country: "Mauritius", ports: [["Port Louis","MUPLU"]] },
+      { country: "Mexico", ports: [["Manzanillo","MXZLO"],["Lazaro Cardenas","MXLZC"],["Veracruz","MXVER"],["Altamira","MXATM"],["Ensenada","MXESE"],["Guaymas","MXGYM"],["Progreso","MXPGO"],["Mazatlan","MXMZT"],["Salina Cruz","MXSCX"]] },
+      { country: "Micronesia", ports: [["Pohnpei","FMPNI"],["Colonia (Yap)","FMYAP"],["Weno","FMWNI"]] },
+      { country: "Moldova", landlocked: true, ports: [] },
+      { country: "Monaco", ports: [["Monaco","MCMON"]] },
+      { country: "Mongolia", landlocked: true, ports: [] },
+      { country: "Montenegro", ports: [["Bar","MEBAR"],["Kotor","MEKOT"],["Tivat","METIV"]] },
+      { country: "Montserrat", ports: [["Plymouth","MSMNI"]] },
+      { country: "Morocco", ports: [["Casablanca","MACAS"],["Tangier Med","MAPTM"],["Agadir","MAAGA"],["Jorf Lasfar","MAJFL"],["Mohammedia","MAMOH"],["Safi","MASFI"]] },
+      { country: "Mozambique", ports: [["Maputo","MZMPM"],["Beira","MZBEW"],["Nacala","MZMNC"],["Quelimane","MZUEL"]] },
+      { country: "Myanmar", ports: [["Yangon","MMRGN"],["Sittwe","MMSIT"],["Pathein","MMPAA"],["Mawlamyine","MMMNU"]] },
+      { country: "Namibia", ports: [["Walvis Bay","NAWVB"],["Luderitz","NALUD"]] },
+      { country: "Nauru", ports: [["Nauru (Anibare Bay)","NRINU"]] },
+      { country: "Nepal", landlocked: true, ports: [] },
+      { country: "Netherlands", ports: [["Rotterdam","NLRTM"],["Amsterdam","NLAMS"],["Vlissingen (Flushing)","NLVLI"],["Groningen","NLGRQ"],["Delfzijl","NLDLZ"],["Terneuzen","NLTNZ"]] },
+      { country: "New Caledonia", ports: [["Noumea","NCNOU"]] },
+      { country: "New Zealand", ports: [["Auckland","NZAKL"],["Tauranga","NZTRG"],["Wellington","NZWLG"],["Lyttelton (Christchurch)","NZLYT"],["Napier","NZNPE"],["Dunedin (Port Chalmers)","NZPOE"],["Nelson","NZNSN"]] },
+      { country: "Nicaragua", ports: [["Corinto","NICOR"],["Puerto Sandino","NIPSN"],["Bluefields","NIBEF"]] },
+      { country: "Nigeria", ports: [["Lagos (Apapa)","NGLOS"],["Tin Can Island","NGTIN"],["Port Harcourt","NGPHC"],["Calabar","NGCBQ"],["Warri","NGWAR"],["Onne","NGONN"]] },
+      { country: "North Korea", ports: [["Nampo","KPNAM"],["Wonsan","KPWON"],["Chongjin","KPCHN"],["Haeju","KPHAE"]] },
+      { country: "North Macedonia", landlocked: true, ports: [] },
+      { country: "Norway", ports: [["Oslo","NOOSL"],["Bergen","NOBGO"],["Stavanger","NOSVG"],["Trondheim","NOTRD"],["Molde","NOMOL"],["Kristiansand","NOKRS"],["Tromso","NOTOS"],["Honningsvag","NOHVG"]] },
+      { country: "Oman", ports: [["Salalah","OMSLL"],["Sohar","OMSOH"],["Muscat (Mina Al Fahal)","OMMCT"],["Duqm","OMDQM"]] },
+      { country: "Pakistan", ports: [["Karachi","PKKHI"],["Port Qasim","PKBQM"],["Gwadar","PKGWD"]] },
+      { country: "Palau", ports: [["Koror","PWKOR"]] },
+      { country: "Panama", ports: [["Balboa","PABLB"],["Colon","PAONX"],["Cristobal","PACRZ"],["Panama City","PAPTY"],["Almirante","PAAML"]] },
+      { country: "Papua New Guinea", ports: [["Port Moresby","PGPOM"],["Lae","PGLAE"],["Rabaul","PGRAB"],["Madang","PGMAG"],["Wewak","PGWWK"]] },
+      { country: "Paraguay", landlocked: true, ports: [] },
+      { country: "Peru", ports: [["Callao","PECLL"],["Paita","PEPIZ"],["Matarani","PEMRI"],["Salaverry","PESAL"],["Chimbote","PECHM"]] },
+      { country: "Philippines", ports: [["Manila","PHMNL"],["Cebu","PHCEB"],["Davao","PHDVO"],["Subic Bay","PHSFS"],["Iloilo","PHILO"],["Cagayan de Oro","PHCGY"],["Zamboanga","PHZAM"]] },
+      { country: "Poland", ports: [["Gdansk","PLGDN"],["Gdynia","PLGDY"],["Szczecin","PLSZZ"],["Swinoujscie","PLSWI"]] },
+      { country: "Portugal", ports: [["Lisbon","PTLIS"],["Sines","PTSIN"],["Leixoes (Porto)","PTLEI"],["Setubal","PTSET"],["Faro (Portimao)","PTPRM"]] },
+      { country: "Puerto Rico", ports: [["San Juan","PRSJU"],["Ponce","PRPSE"],["Guayanilla","PRGUA"]] },
+      { country: "Qatar", ports: [["Doha (Hamad Port)","QADOH"],["Mesaieed","QAMES"],["Ras Laffan","QARLF"]] },
+      { country: "Romania", ports: [["Constanta","ROCND"],["Galati","ROGAL"],["Braila","ROBRA"],["Tulcea","ROTUL"]] },
+      { country: "Russia", ports: [["St. Petersburg","RULED"],["Novorossiysk","RUNVS"],["Vladivostok","RUVVO"],["Nakhodka","RUNKA"],["Kaliningrad","RUKGD"],["Murmansk","RUMMK"],["Arkhangelsk","RARH"],["Rostov-on-Don","RRRRN"],["Sochi","RUAER"]] },
+      { country: "Rwanda", landlocked: true, ports: [] },
+      { country: "Saint Kitts and Nevis", ports: [["Basseterre","KNBAS"]] },
+      { country: "Saint Lucia", ports: [["Castries","LCCAS"],["Vieux Fort","LCVIF"]] },
+      { country: "Saint Vincent and the Grenadines", ports: [["Kingstown","VCKIN"]] },
+      { country: "Samoa", ports: [["Apia","WSAPW"]] },
+      { country: "Sao Tome and Principe", ports: [["Sao Tome","STTMS"]] },
+      { country: "Saudi Arabia", ports: [["Jeddah (Jeddah Islamic Port)","SAJED"],["Dammam (King Abdulaziz Port)","SADMM"],["Jubail","SAJUB"],["Yanbu","SAYNB"],["Rabigh","SARAB"],["Ras Tanura","SARTA"],["Dhiba","SADHB"]] },
+      { country: "Senegal", ports: [["Dakar","SNDKR"]] },
+      { country: "Serbia", landlocked: true, ports: [] },
+      { country: "Seychelles", ports: [["Victoria (Mahe)","SCMAH"]] },
+      { country: "Sierra Leone", ports: [["Freetown","SLFNA"]] },
+      { country: "Singapore", ports: [["Singapore","SGSIN"],["Jurong","SGJUR"],["Paya Lebar","SGQPG"]] },
+      { country: "Sint Maarten", ports: [["Philipsburg","SXSXM"]] },
+      { country: "Slovakia", landlocked: true, ports: [] },
+      { country: "Slovenia", ports: [["Koper","SIKOP"],["Piran","SIPIR"]] },
+      { country: "Solomon Islands", ports: [["Honiara","SBHIR"],["Point Cruz","SBPRS"],["Auki","SBAUI"]] },
+      { country: "Somalia", ports: [["Mogadishu","SOMGQ"],["Berbera","SOBBO"],["Kismayo","SOKMU"],["Merca","SOMEQ"]] },
+      { country: "South Africa", ports: [["Durban","ZADUR"],["Cape Town","ZACPT"],["Port Elizabeth","ZAPLZ"],["Richards Bay","ZARCB"],["East London","ZAELS"],["Saldanha Bay","ZASDB"],["Mossel Bay","ZAMZY"]] },
+      { country: "South Korea", ports: [["Busan","KRPUS"],["Incheon","KRICN"],["Ulsan","KRUOS"],["Gwangyang","KRKAN"],["Pyongtaek","KRPTK"],["Masan","KRMAS"],["Yeosu","KRYOS"],["Donghae","KRTGH"]] },
+      { country: "South Sudan", landlocked: true, ports: [] },
+      { country: "Spain", ports: [["Valencia","ESVLC"],["Barcelona","ESBCN"],["Algeciras","ESALG"],["Bilbao","ESBIO"],["Las Palmas","ESLPA"],["Cartagena","ESCAR"],["Malaga","ESAGP"],["Vigo","ESVGO"],["Tarragona","ESTAR"],["Cadiz","ESCAD"],["Alicante","ESALC"],["Santa Cruz de Tenerife","ESSCT"],["Gijon","ESGIJ"]] },
+      { country: "Sri Lanka", ports: [["Colombo","LKCMB"],["Hambantota","LKHBA"],["Galle","LKGAL"],["Trincomalee","LKTRR"]] },
+      { country: "Sudan", ports: [["Port Sudan","SDPZU"]] },
+      { country: "Suriname", ports: [["Paramaribo","SRPBM"],["Nieuw Nickerie","SRNIC"]] },
+      { country: "Sweden", ports: [["Gothenburg","SEGOE"],["Stockholm","SESTO"],["Malmo","SEMMA"],["Helsingborg","SEHEL"],["Norrkoping","SENOR"],["Lulea","SELUL"]] },
+      { country: "Switzerland", landlocked: true, ports: [] },
+      { country: "Syria", ports: [["Lattakia","SYLTK"],["Tartous","SYTTS"],["Banias","SYBAN"]] },
+      { country: "Taiwan", ports: [["Kaohsiung","TWKHH"],["Taichung","TWTXG"],["Keelung","TWKEL"],["Taipei","TWTPE"],["Hualien","TWHUN"]] },
+      { country: "Tanzania", ports: [["Dar es Salaam","TZDAR"],["Zanzibar","TZZNZ"],["Tanga","TZTGT"],["Mtwara","TZMYW"]] },
+      { country: "Thailand", ports: [["Laem Chabang","THLCH"],["Bangkok","THBKK"],["Map Ta Phut","THMAT"],["Sriracha","THSRI"],["Songkhla","THSGZ"]] },
+      { country: "Timor-Leste", ports: [["Dili","TLDIL"]] },
+      { country: "Togo", ports: [["Lome","TGLFW"]] },
+      { country: "Tonga", ports: [["Nukualofa","TOTBU"],["Vavau","TOVAV"]] },
+      { country: "Trinidad and Tobago", ports: [["Port of Spain","TTPOS"],["Point Lisas","TTPTS"],["Point Fortin","TTPFN"],["Scarborough (Tobago)","TTSCA"]] },
+      { country: "Tunisia", ports: [["Tunis (Radès)","TNTUN"],["Sfax","TNSFA"],["Sousse","TNSUS"],["Bizerte","TNBIZ"],["Gabes","TNGAE"]] },
+      { country: "Turkey", ports: [["Istanbul (Ambarli)","TRAMB"],["Izmir","TRIZM"],["Mersin","TRMER"],["Gemlik","TRGEM"],["Iskenderun","TRISK"],["Derince","TRDRC"],["Antalya","TRAYT"],["Trabzon","TRTZX"],["Samsun","TRSSX"],["Tekirdag","TRTEK"],["Bandirma","TRBDM"],["Haydarpasa","TRHAY"]] },
+      { country: "Turks and Caicos Islands", ports: [["Grand Turk","TCGDT"],["Providenciales","TCPLS"]] },
+      { country: "Tuvalu", ports: [["Funafuti","TVFUN"]] },
+      { country: "Uganda", landlocked: true, ports: [] },
+      { country: "Ukraine", ports: [["Odessa","UAODS"],["Mykolaiv","UANIK"],["Kherson","UAKHE"],["Mariupol","UAMPW"],["Chornomorsk","UACHO"],["Yuzhny","UAYUZ"]] },
+      { country: "United Arab Emirates", ports: [["Dubai (Jebel Ali)","AEDXB"],["Abu Dhabi","AEAUH"],["Sharjah","AESHJ"],["Fujairah","AEFJR"],["Ras Al Khaimah","AERKT"],["Ajman","AEAJM"],["Khor Fakkan","AEKLF"],["Jebel Ali","AEJEA"]] },
+      { country: "United Kingdom", ports: [["Felixstowe","GBFXT"],["Southampton","GBSOU"],["London (Tilbury)","GBTIL"],["Liverpool","GBLIV"],["Immingham","GBIMM"],["Grimsby","GBGSY"],["Bristol","GBBRS"],["Manchester","GBMNC"],["Glasgow","GBGLA"],["Belfast","GBBEL"],["Dover","GBDOV"],["Edinburgh (Leith)","GBEDI"],["Cardiff","GBCCC"],["Aberdeen","GBABD"],["Plymouth","GBPLY"]] },
+      { country: "United States", ports: [["Los Angeles","USLAX"],["Long Beach","USLGB"],["New York / New Jersey","USNYC"],["Savannah","USSAV"],["Houston","USHOU"],["Seattle","USSEA"],["Oakland","USOAK"],["Virginia (Norfolk)","USORF"],["Charleston","USCHS"],["Miami","USMIA"],["Tacoma","USTIW"],["Baltimore","USBAL"],["Philadelphia","USPHL"],["New Orleans","USMSY"],["Jacksonville","USJAX"],["Boston","USBOS"],["Mobile","USMOB"],["Port Everglades","USPEF"],["Anchorage","USANC"],["Honolulu","USHNL"]] },
+      { country: "Uruguay", ports: [["Montevideo","UYMVD"],["Nueva Palmira","UYNVP"]] },
+      { country: "Uzbekistan", landlocked: true, ports: [] },
+      { country: "Vanuatu", ports: [["Port Vila","VUVLI"],["Luganville","VUSLJ"]] },
+      { country: "Venezuela", ports: [["Puerto Cabello","VEPBL"],["La Guaira","VELAG"],["Maracaibo","VEMAR"],["Guanta","VEGUT"],["Cumana","VECUM"]] },
+      { country: "Vietnam", ports: [["Ho Chi Minh City (Cat Lai)","VNSGN"],["Hai Phong","VNHPH"],["Da Nang","VNDAD"],["Quy Nhon","VNUIH"],["Can Tho","VNCTH"],["Ha Long (Cai Lan)","VNCLN"],["Vung Tau","VNVUT"]] },
+      { country: "Yemen", ports: [["Aden","YEADE"],["Hodeidah","YEHOD"],["Mukalla","YEMKX"]] },
+      { country: "Zambia", landlocked: true, ports: [] },
+      { country: "Zimbabwe", landlocked: true, ports: [] },
+    ];
+    // =======================================================================
+
+    const openState = {}; // country -> bool
+    let totalPorts = 0, coastal = 0, landlocked = 0;
+    DATA.forEach(function (c) {
+      totalPorts += c.ports.length;
+      if (c.landlocked) landlocked++; else coastal++;
+    });
+    document.getElementById("sPorts").textContent = totalPorts;
+    document.getElementById("sCountries").textContent = DATA.length;
+    document.getElementById("sCoastal").textContent = coastal;
+    document.getElementById("sLand").textContent = landlocked;
+
+    function setAll(open) {
+      DATA.forEach(function (c) { openState[c.country] = open; });
+      render();
+    }
+    function toggle(name) {
+      openState[name] = !openState[name];
+      render();
+    }
+    window.toggle = toggle;
+    window.setAll = setAll;
+
+    function render() {
+      const q = document.getElementById("search").value.trim().toLowerCase();
+      const hideLand = document.getElementById("hideLand").checked;
+      const list = document.getElementById("list");
+      let html = "";
+      let shownCountries = 0, shownPorts = 0;
+
+      DATA.forEach(function (c) {
+        if (hideLand && c.landlocked) return;
+        const countryMatch = !q || c.country.toLowerCase().includes(q);
+        const matched = c.ports.filter(function (p) {
+          return !q || p[0].toLowerCase().includes(q) || p[1].toLowerCase().includes(q);
+        });
+        if (q && !countryMatch && matched.length === 0) return;
+
+        shownCountries++;
+        const isOpen = q ? true : !!openState[c.country];
+        const portsToShow = (q && !countryMatch) ? matched : c.ports;
+        shownPorts += portsToShow.length;
+
+        html += '<div class="country">';
+        html += '<div class="chead" ' + (q ? '' : 'onclick="toggle(\'' + c.country.replace(/'/g, "\\'") + '\')"') + '>';
+        if (!q) html += '<span class="arrow">' + (isOpen ? "▼" : "▶") + '</span>';
+        html += '<span class="cname">' + c.country + '</span>';
+        if (c.landlocked) {
+          html += '<span class="badge badge-amber">Landlocked</span>';
+        } else {
+          html += '<span class="badge badge-blue">' + c.ports.length + ' port' + (c.ports.length !== 1 ? "s" : "") + '</span>';
+        }
+        html += '</div>';
+
+        if (isOpen) {
+          if (c.landlocked) {
+            html += '<div class="landlocked-note">N/A — Landlocked country (no sea ports)</div>';
+          } else {
+            html += '<table><thead><tr><th style="width:40px;">#</th><th>Port Name</th><th>Port Code (UN/LOCODE)</th></tr></thead><tbody>';
+            portsToShow.forEach(function (p, i) {
+              html += '<tr><td class="num">' + (i + 1) + '</td><td><strong>' + p[0] + '</strong></td><td><span class="code">' + p[1] + '</span></td></tr>';
+            });
+            html += '</tbody></table>';
+          }
+        }
+        html += '</div>';
+      });
+
+      if (shownCountries === 0) {
+        list.innerHTML = '<div class="empty">Koi result nahi mila.</div>';
+      } else {
+        list.innerHTML = html;
+      }
+      document.getElementById("info").innerHTML =
+        "Showing <b>" + shownPorts + "</b> ports across <b>" + shownCountries + "</b> countries.";
+    }
+
+    render();
+  </script>
+</body>
+</html>
