@@ -1,215 +1,244 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J. PATEL SHIPPING AND LOGISTICS | Port Directory</title>
-    
-    <meta property="og:title" content="J. PATEL | Global Port Directory">
-    <meta property="og:description" content="Search 200+ Global Sea Ports & UN/LOCODE. Professional Logistics Reference.">
-    <meta name="theme-color" content="#002b5c">
+import { useState, useMemo } from "react";
+import {
+  COUNTRIES,
+  PORTS,
+  TOTAL_COUNTRIES,
+  COASTAL_COUNT,
+  LANDLOCKED_COUNT,
+} from "./portsData";
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .jp-navy { background-color: #002b5c; }
-        .jp-gold { color: #ffb400; }
-        .card-shadow { box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); }
-        .dev-footer { background: #001a38; border-top: 1px solid #003d7a; }
-    </style>
-</head>
-<body class="bg-slate-50">
+export default function App() {
+  const [query, setQuery] = useState("");
+  const [hideLandlocked, setHideLandlocked] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-    <!-- Navbar -->
-    <nav class="bg-white border-b py-5 px-6 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="text-xl md:text-2xl font-extrabold tracking-tighter text-[#002b5c] uppercase">
-                J. PATEL <span class="text-amber-500">SHIPPING AND LOGISTICS</span>
-            </div>
-            <div class="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Global Port Reference v4.0
-            </div>
-        </div>
-    </nav>
+  const q = query.trim().toLowerCase();
 
-    <!-- Hero -->
-    <div class="jp-navy text-white py-16 px-6 relative overflow-hidden">
-        <div class="max-w-4xl mx-auto text-center relative z-10">
-            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight">Port Code Finder</h1>
-            <p class="text-slate-300 text-lg">Instant access to 200+ Sea Ports & UN/LOCODE Worldwide.</p>
-        </div>
-    </div>
+  const filteredCountries = useMemo(() => {
+    return COUNTRIES.map((c) => {
+      // Filter ports within a country by query
+      const matchedPorts = c.ports.filter(
+        ([name, code]) =>
+          !q ||
+          name.toLowerCase().includes(q) ||
+          code.toLowerCase().includes(q)
+      );
+      const countryMatches = !q || c.country.toLowerCase().includes(q);
+      return { ...c, matchedPorts, countryMatches };
+    }).filter((c) => {
+      if (hideLandlocked && c.landlocked) return false;
+      if (!q) return true;
+      // Show if country name matches OR any port matches
+      return c.countryMatches || c.matchedPorts.length > 0;
+    });
+  }, [q, hideLandlocked]);
 
-    <!-- Search -->
-    <div class="max-w-4xl mx-auto px-6 -mt-10 relative z-20">
-        <div class="bg-white rounded-2xl p-3 shadow-2xl">
-            <input type="text" id="searchInput" autofocus
-                placeholder="Search Port, Country, or Code (e.g. Kandla, Keelung, USLAX)..." 
-                class="w-full px-6 py-5 rounded-xl border-none focus:ring-2 focus:ring-amber-500 outline-none text-lg md:text-xl transition-all bg-slate-50">
-        </div>
-        <div id="counter" class="text-center mt-6 text-sm font-bold text-slate-400 uppercase tracking-widest italic">Updating Database...</div>
-    </div>
+  const visiblePortCount = useMemo(() => {
+    if (!q) return PORTS.length;
+    return filteredCountries.reduce(
+      (sum, c) =>
+        sum + (c.countryMatches ? c.ports.length : c.matchedPorts.length),
+      0
+    );
+  }, [q, filteredCountries]);
 
-    <!-- Grid -->
-    <div class="max-w-7xl mx-auto px-6 py-12">
-        <div id="portGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-    </div>
+  function toggle(country: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(country)) next.delete(country);
+      else next.add(country);
+      return next;
+    });
+  }
 
-    <!-- Empty State -->
-    <div id="noResults" class="hidden text-center py-20 text-slate-300 font-bold uppercase italic">No Ports Found</div>
+  function expandAll() {
+    setExpanded(new Set(COUNTRIES.map((c) => c.country)));
+  }
+  function collapseAll() {
+    setExpanded(new Set());
+  }
 
-    <!-- Company Footer -->
-    <footer class="bg-slate-900 text-white pt-16 pb-8 px-6">
-        <div class="max-w-7xl mx-auto text-center md:text-left grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-800">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-blue-950 via-blue-800 to-cyan-700 text-white shadow-lg">
+        <div className="max-w-6xl mx-auto px-4 py-7">
+          <div className="flex items-center gap-3">
+            <div className="text-4xl">⚓</div>
             <div>
-                <div class="text-xl font-black mb-4 tracking-tighter uppercase">J. PATEL <span class="text-amber-500">GROUP</span></div>
-                <p class="text-slate-400 max-w-sm leading-relaxed text-sm">Premier logistics solutions and shipping data services for global trade.</p>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                World Sea Ports Directory
+              </h1>
+              <p className="text-cyan-200 text-sm">
+                All Countries · Major Sea Ports & UN/LOCODE Port Codes
+              </p>
             </div>
-            <div class="text-sm text-slate-500 md:text-right">
-                <p>&copy; 2026 J. PATEL SHIPPING AND LOGISTICS</p>
-                <p>Private & Confidential Reference Tool</p>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+            <Stat label="Total Ports" value={PORTS.length} />
+            <Stat label="Countries / Territories" value={TOTAL_COUNTRIES} />
+            <Stat label="Coastal Nations" value={COASTAL_COUNT} />
+            <Stat label="Landlocked" value={LANDLOCKED_COUNT} />
+          </div>
+        </div>
+      </header>
+
+      {/* Toolbar */}
+      <div className="max-w-6xl mx-auto px-4 mt-6">
+        <div className="bg-white rounded-xl shadow p-4 flex flex-col lg:flex-row gap-3 lg:items-center">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              🔍
+            </span>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by country, port name, or port code (e.g. INNSA, Dubai, Japan)..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap items-center">
+            <label className="flex items-center gap-2 text-sm text-slate-600 select-none cursor-pointer px-2">
+              <input
+                type="checkbox"
+                checked={hideLandlocked}
+                onChange={(e) => setHideLandlocked(e.target.checked)}
+                className="w-4 h-4 accent-blue-700"
+              />
+              Hide Landlocked
+            </label>
+            <button
+              onClick={expandAll}
+              className="px-3 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-sm font-medium transition"
+            >
+              Expand All
+            </button>
+            <button
+              onClick={collapseAll}
+              className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition"
+            >
+              Collapse All
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-slate-500 mt-2 px-1">
+          Showing <b>{visiblePortCount}</b> ports across{" "}
+          <b>{filteredCountries.length}</b> countries.
+        </p>
+      </div>
+
+      {/* Country List */}
+      <main className="max-w-6xl mx-auto px-4 py-6 space-y-3">
+        {filteredCountries.length === 0 && (
+          <div className="bg-white rounded-xl shadow p-10 text-center text-slate-400">
+            Koi result nahi mila "{query}" ke liye.
+          </div>
+        )}
+
+        {filteredCountries.map((c) => {
+          // When searching, auto-expand matched countries
+          const isOpen = q ? true : expanded.has(c.country);
+          const portsToShow =
+            q && !c.countryMatches ? c.matchedPorts : c.ports;
+
+          return (
+            <div
+              key={c.country}
+              className="bg-white rounded-xl shadow overflow-hidden"
+            >
+              <button
+                onClick={() => !q && toggle(c.country)}
+                className={`w-full flex items-center justify-between px-4 py-3 text-left transition ${
+                  q ? "cursor-default" : "hover:bg-slate-50 cursor-pointer"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {!q && (
+                    <span className="text-slate-400 text-sm w-4">
+                      {isOpen ? "▼" : "▶"}
+                    </span>
+                  )}
+                  <span className="font-semibold text-slate-800">
+                    {c.country}
+                  </span>
+                  {c.landlocked ? (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                      Landlocked
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                      {c.ports.length} port{c.ports.length !== 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              {isOpen && !c.landlocked && (
+                <div className="border-t border-slate-100 overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-slate-500 uppercase text-xs tracking-wider">
+                      <tr>
+                        <th className="px-4 py-2 w-12">#</th>
+                        <th className="px-4 py-2">Port Name</th>
+                        <th className="px-4 py-2">Port Code (UN/LOCODE)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {portsToShow.map(([name, code], i) => (
+                        <tr
+                          key={code + name + i}
+                          className="border-b border-slate-50 hover:bg-blue-50 transition"
+                        >
+                          <td className="px-4 py-2 text-slate-400">{i + 1}</td>
+                          <td className="px-4 py-2 font-medium text-slate-700">
+                            {name}
+                          </td>
+                          <td className="px-4 py-2">
+                            <span className="inline-block bg-blue-100 text-blue-800 font-mono font-semibold px-2.5 py-1 rounded">
+                              {code}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {isOpen && c.landlocked && (
+                <div className="border-t border-slate-100 px-4 py-3 text-sm text-slate-400 italic">
+                  N/A — Landlocked country (no sea ports)
+                </div>
+              )}
             </div>
-        </div>
-        
-        <!-- Developer Credit Section -->
-        <div class="dev-footer mt-10 py-6 rounded-xl text-center">
-            <p class="text-slate-400 text-xs uppercase tracking-[0.2em] mb-1">System Design & Maintenance</p>
-            <p class="text-amber-500 font-bold text-lg">Developed by Prakash Kotak</p>
-            <p class="text-white font-semibold tracking-widest mt-1">Mobile No: <a href="tel:9925204743" class="hover:underline">9925204743</a></p>
-        </div>
-    </footer>
+          );
+        })}
+      </main>
 
-    <script>
-        const ports = [
-            // --- INDIA (UPDATED KANDLA) ---
-            { n: "Kandla", c: "India", l: "INIXY", t: "Major Hub" },
-            { n: "Mundra", c: "India", l: "INMUN", t: "Private Hub" },
-            { n: "Nhava Sheva (JNPT)", c: "India", l: "INNSA", t: "Container Hub" },
-            { n: "Chennai", c: "India", l: "INMAA", t: "Major Port" },
-            { n: "Visakhapatnam", c: "India", l: "INVTZ", t: "Major Port" },
-            { n: "Hazira", c: "India", l: "INHZA", t: "Industrial Port" },
-            { n: "Pipavav", c: "India", l: "INPAV", t: "Container Port" },
-            { n: "Cochin", c: "India", l: "INCOK", t: "Transhipment" },
-            { n: "Tuticorin", c: "India", l: "INTUT", t: "Major Port" },
-            { n: "Kolkata", c: "India", l: "INCCU", t: "Riverine Port" },
-            { n: "Haldia", c: "India", l: "INHAL", t: "Major Port" },
-            { n: "Dahej", c: "India", l: "INDHJ", t: "Chemical Port" },
-            { n: "Marmagao", c: "India", l: "INMRM", t: "Iron Ore Port" },
-            { n: "New Mangalore", c: "India", l: "INNML", t: "Major Port" },
-            { n: "Paradip", c: "India", l: "INPRT", t: "Bulk Hub" },
-            { n: "Krishnapatnam", c: "India", l: "INKRI", t: "Private Hub" },
-            { n: "Ennore", c: "India", l: "INENR", t: "Major Port" },
-            { n: "Karaikal", c: "India", l: "INKRK", t: "Private Port" },
-            { n: "Gopalpur", c: "India", l: "INGPR", t: "Bulk Port" },
-            { n: "Gangavaram", c: "India", l: "INGVR", t: "Deep Water Port" },
-            { n: "Angre", c: "India", l: "INAGP", t: "Private Port" },
-            { n: "Dighi", c: "India", l: "INDIG", t: "Private Port" },
+      {/* Footer */}
+      <footer className="border-t border-slate-200 py-6 text-center text-sm text-slate-500 px-4">
+        <p>
+          Source: UNECE UN/LOCODE Database · Format: Country Code + Location Code
+          (5 Characters)
+        </p>
+        <p className="mt-1">
+          © 2026 J. PATEL SHIPPING AND LOGISTICS · Private &amp; Confidential
+          Reference Tool
+        </p>
+      </footer>
+    </div>
+  );
+}
 
-            // --- TAIWAN ---
-            { n: "Keelung", c: "Taiwan", l: "TWKEL", t: "Major Port" },
-            { n: "Kaohsiung", c: "Taiwan", l: "TWKHH", t: "Primary Hub" },
-            { n: "Taichung", c: "Taiwan", l: "TWTXG", t: "Industrial Port" },
-            { n: "Taipei", c: "Taiwan", l: "TWTPE", t: "Container Port" },
-
-            // --- AFRICA ---
-            { n: "Dar es Salaam", c: "Tanzania", l: "TZDAR", t: "Main Gateway" },
-            { n: "Mombasa", c: "Kenya", l: "KEMBA", t: "East Africa Hub" },
-            { n: "Djibouti", c: "Djibouti", l: "DJJIB", t: "Strategic Hub" },
-            { n: "Durban", c: "South Africa", l: "ZADUR", t: "Southern Hub" },
-            { n: "Cape Town", c: "South Africa", l: "ZACPT", t: "Major Port" },
-            { n: "Beira", c: "Mozambique", l: "MZBEW", t: "Corridor Port" },
-            { n: "Casablanca", c: "Morocco", l: "MACAS", t: "North Africa Hub" },
-            { n: "Tanger Med", c: "Morocco", l: "MAPTM", t: "Mega Hub" },
-            { n: "Lagos (Apapa)", c: "Nigeria", l: "NGLOS", t: "Main Gateway" },
-            { n: "Port Said", c: "Egypt", l: "EGPSD", t: "Suez Hub" },
-
-            // --- WORLDWIDE ---
-            { n: "Shanghai", c: "China", l: "CNSHA", t: "Mega Hub" },
-            { n: "Singapore", c: "Singapore", l: "SGSIN", t: "Global Hub" },
-            { n: "Rotterdam", c: "Netherlands", l: "NLRTM", t: "Euro Gateway" },
-            { n: "Jebel Ali", c: "UAE", l: "AEJEA", t: "Mid-East Hub" },
-            { n: "Antwerp", c: "Belgium", l: "BEANR", t: "Major Hub" },
-            { n: "Hamburg", c: "Germany", l: "DEHAM", t: "Major Port" },
-            { n: "Los Angeles", c: "USA", l: "USLAX", t: "Pacific Hub" },
-            { n: "Long Beach", c: "USA", l: "USLGB", t: "Pacific Hub" },
-            { n: "New York / NJ", c: "USA", l: "USNYC", t: "Atlantic Hub" },
-            { n: "Savannah", c: "USA", l: "USSAV", t: "Major Port" },
-            { n: "Miami", c: "USA", l: "USMIA", t: "South Hub" },
-            { n: "Oakland", c: "USA", l: "USOAK", t: "Pacific Port" },
-            { n: "Felixstowe", c: "UK", l: "GBFXT", t: "Major Port" },
-            { n: "Liverpool", c: "UK", l: "GBLIV", t: "West Coast Port" },
-            { n: "Colombo", c: "Sri Lanka", l: "LKCMB", t: "South Asia Hub" },
-            { n: "Port Klang", c: "Malaysia", l: "MYPKG", t: "Major Hub" },
-            { n: "Busan", c: "South Korea", l: "KRPUS", t: "Major Hub" },
-            { n: "Sydney", c: "Australia", l: "AUSYD", t: "Main Port" },
-            { n: "Melbourne", c: "Australia", l: "AUMEL", t: "Major Hub" }
-            // ... truncated for display, full list included in file
-        ];
-
-        // Adding more dummy ports to reach 200+
-        const countries = ["China", "USA", "Germany", "Japan", "Brazil", "UK", "France", "Spain"];
-        for(let i=0; i<80; i++) {
-            ports.push({ 
-                n: "Port-" + (i+100), 
-                c: countries[i % countries.length], 
-                l: "ZZ" + (100+i), 
-                t: "Global Reference Port" 
-            });
-        }
-
-        const grid = document.getElementById('portGrid');
-        const input = document.getElementById('searchInput');
-        const counter = document.getElementById('counter');
-        const noResults = document.getElementById('noResults');
-
-        function render(list) {
-            grid.innerHTML = '';
-            if (list.length === 0) {
-                noResults.classList.remove('hidden');
-            } else {
-                noResults.classList.add('hidden');
-                list.forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = "bg-white p-6 rounded-2xl border border-slate-100 card-shadow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group";
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="text-[10px] font-extrabold bg-blue-50 text-blue-700 px-2 py-1 rounded uppercase tracking-widest">${p.c}</span>
-                            <span class="text-[9px] text-slate-300 font-bold uppercase tracking-tighter">${p.t}</span>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800 mb-6 group-hover:text-[#002b5c] transition-colors">${p.n}</h3>
-                        <div class="flex items-center justify-between bg-slate-50 rounded-xl p-4 border border-dashed border-slate-200 group-hover:bg-amber-50 group-hover:border-amber-200 transition-colors">
-                            <span class="font-mono text-xl font-black text-[#002b5c] tracking-wider">${p.l}</span>
-                            <button onclick="copy('${p.l}', this)" class="text-[10px] font-bold uppercase bg-white border px-3 py-2 rounded-lg shadow-sm hover:bg-[#002b5c] hover:text-white transition-all">Copy</button>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-            counter.innerText = `${list.length} Port Codes Active`;
-        }
-
-        function copy(txt, btn) {
-            navigator.clipboard.writeText(txt);
-            const old = btn.innerText;
-            btn.innerText = 'Copied';
-            btn.style.backgroundColor = '#002b5c';
-            btn.style.color = 'white';
-            setTimeout(() => { btn.innerText = old; btn.style = ''; }, 1200);
-        }
-
-        input.addEventListener('input', () => {
-            const val = input.value.toLowerCase();
-            const filtered = ports.filter(p => 
-                p.n.toLowerCase().includes(val) || 
-                p.c.toLowerCase().includes(val) || 
-                p.l.toLowerCase().includes(val)
-            );
-            render(filtered);
-        });
-
-        render(ports);
-    </script>
-</body>
-</html>
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+      <div className="text-2xl font-bold">{value}</div>
+      <div className="text-cyan-100 text-xs uppercase tracking-wider">
+        {label}
+      </div>
+    </div>
+  );
+}
